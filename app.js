@@ -56,7 +56,7 @@ function initFlashCountdown() {
     const distance = Math.max(0, targetTime - now);
 
     const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const minutes = Math.floor((distance % (1000 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
     const cdH = document.getElementById('cdHours');
@@ -174,7 +174,7 @@ function initHeroRotation() {
     });
   });
 
-  // Auto rotate every 6 seconds
+  // Auto rotate every 6.5 seconds
   setInterval(() => {
     const nextIdx = (AppState.heroIndex + 1) % HERO_ITEMS.length;
     updateHeroShowcase(nextIdx);
@@ -184,10 +184,8 @@ function initHeroRotation() {
 // ================= Product Catalog Rendering =================
 function filterAndSortProducts() {
   return AppState.products.filter(p => {
-    // Category filter
     const matchesCategory = AppState.currentCategory === 'all' || p.category === AppState.currentCategory;
 
-    // Search query filter
     const q = AppState.searchQuery.toLowerCase().trim();
     const matchesSearch = !q || 
       p.name.toLowerCase().includes(q) || 
@@ -195,7 +193,6 @@ function filterAndSortProducts() {
       p.categoryLabel.toLowerCase().includes(q) ||
       p.description.toLowerCase().includes(q);
 
-    // Price filter
     const matchesPrice = p.price <= AppState.maxPrice;
 
     return matchesCategory && matchesSearch && matchesPrice;
@@ -208,7 +205,7 @@ function filterAndSortProducts() {
       const discB = parseInt(b.discount) || 0;
       return discB - discA;
     }
-    return 0; // 'featured' keeps original ordering
+    return 0;
   });
 }
 
@@ -283,7 +280,7 @@ function renderProducts() {
             </div>
             <div class="stock-indicator ${product.stock <= 5 ? 'low' : ''}">
               <span class="stock-dot"></span>
-              <span>${product.stock <= 5 ? `Only ${product.stock} Left` : 'In Stock (COD)'}</span>
+              <span>${product.stock <= 5 ? `Only ${product.stock} Left` : 'In Stock'}</span>
             </div>
           </div>
 
@@ -300,15 +297,15 @@ function renderProducts() {
               <span class="price-pkr">${formatPKR(product.price)}</span>
               ${product.originalPrice ? `<span class="price-original">${formatPKR(product.originalPrice)}</span>` : ''}
             </div>
-            <span class="cod-perk-pill">
-              <i class="fa-solid fa-truck-fast"></i> Free COD
+            <span class="shipping-perk-pill">
+              <i class="fa-solid fa-truck-fast"></i> Free Delivery
             </span>
           </div>
 
-          <!-- Add to Cart Button -->
+          <!-- Add to Cart Button (Clean, no COD text) -->
           <button class="card-add-cart-btn" id="addBtn_${product.id}" onclick="handleAddToCartClick('${product.id}')">
             <i class="fa-solid fa-cart-plus"></i>
-            <span>Add to Cart (COD)</span>
+            <span>Add to Cart</span>
           </button>
 
         </div>
@@ -370,7 +367,7 @@ function handleAddToCartClick(productId) {
     btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Added ✓</span>';
     setTimeout(() => {
       btn.classList.remove('added');
-      btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> <span>Add to Cart (COD)</span>';
+      btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> <span>Add to Cart</span>';
     }, 1800);
   }
 
@@ -418,7 +415,7 @@ function renderCartDrawer() {
       <div class="cart-empty-view">
         <i class="fa-solid fa-bag-shopping"></i>
         <h4>Your Cart is Empty</h4>
-        <p class="text-muted">Explore our flagship electronics and add products via Cash on Delivery!</p>
+        <p class="text-muted">Explore our flagship electronics and add products to your cart!</p>
         <button class="btn btn-primary btn-sm" onclick="closeCart(); document.getElementById('catalogSection').scrollIntoView({behavior:'smooth'});" style="margin-top: 1rem;">
           Browse Electronics
         </button>
@@ -568,7 +565,7 @@ function openQuickView(productId) {
             <span class="stars-score">${product.rating}</span>
             <span class="reviews-count">(${product.reviewsCount} verified reviews)</span>
           </div>
-          <span class="stock-indicator">● In Stock (Free Cash on Delivery)</span>
+          <span class="stock-indicator">● In Stock • Official Warranty</span>
         </div>
 
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.6;">
@@ -588,7 +585,7 @@ function openQuickView(productId) {
             ${product.originalPrice ? `<span style="color: var(--text-muted); text-decoration: line-through; font-size: 0.85rem;">${formatPKR(product.originalPrice)}</span>` : ''}
           </div>
           <button class="btn btn-primary" onclick="addToCart('${product.id}', 1); closeQuickView(); showToast('Added to Cart!', 'success');">
-            <i class="fa-solid fa-cart-plus"></i> Add to Cart (COD)
+            <i class="fa-solid fa-cart-plus"></i> Add to Cart
           </button>
         </div>
       </div>
