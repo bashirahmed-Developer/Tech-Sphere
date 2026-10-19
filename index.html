@@ -3,394 +3,835 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="TechSphere - Premium Electronics & Next-Gen Gadgets Store with Cash on Delivery across Pakistan. Built by Bashir Ahmed.">
-  <title>TechSphere | Next-Gen Electronics & Gadgets</title>
+  <meta name="description" content="TechSphere - Premium Electronics & Next-Gen Gadgets Store with 100% Cash on Delivery across Pakistan. Authentic Apple, Sony, ASUS ROG, DJI, Samsung.">
+  <title>TechSphere | Next-Gen Electronics & Flagship Gadgets</title>
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 
-  <!-- Google Fonts: Outfit & Inter -->
+  <!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Font Awesome Icons -->
+  <!-- Font Awesome Icons 6.5 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ================= Top Announcement Bar ================= -->
-  <div style="background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #ffffff; text-align: center; padding: 0.45rem 1rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em;">
-    🚚 FREE Express Delivery Across Pakistan • 💵 Cash on Delivery (Pay at Doorstep) • 🛡️ 1-Year Official Warranty
+  <!-- ================= Top Glowing Announcement Ticker ================= -->
+  <div class="announcement-bar">
+    <div class="ticker-content">
+      <span><i class="fa-solid fa-truck-fast"></i> <strong>FREE Express Delivery</strong> across Pakistan</span>
+      <span class="ticker-sep">•</span>
+      <span><i class="fa-solid fa-hand-holding-dollar"></i> <strong>100% Cash on Delivery</strong> (Pay at Doorstep)</span>
+      <span class="ticker-sep">•</span>
+      <span><i class="fa-solid fa-shield-halved"></i> <strong>Official 1-Year Warranty</strong> & Open-Box Verification</span>
+      <span class="ticker-sep">•</span>
+      <span><i class="fa-solid fa-tag"></i> Use Coupon <strong>TECH10</strong> for 10% OFF</span>
+    </div>
   </div>
 
-  <!-- ================= Header & Navbar ================= -->
-  <header class="header">
-    <div class="header-container">
-      <div class="brand" id="brandHomeBtn">
-        <div class="brand-icon">
+  <!-- ================= Main Header & Sticky Navigation ================= -->
+  <header class="navbar" id="mainNavbar">
+    <div class="nav-container">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="brand-logo" id="brandHomeLink">
+        <div class="logo-symbol">
           <i class="fa-solid fa-bolt-lightning"></i>
         </div>
-        <div class="brand-title">
-          <h1>TechSphere</h1>
-          <p>Electronics & Tech Hub</p>
+        <div class="logo-text">
+          <span class="brand-name">Tech<span class="brand-highlight">Sphere</span></span>
+          <span class="brand-tagline">Flagship Electronics Hub</span>
         </div>
-      </div>
+      </a>
 
-      <!-- Live Search Bar in Nav -->
-      <div class="nav-search-box">
+      <!-- Search Bar -->
+      <div class="nav-search-wrapper">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="navSearchInput" class="nav-search-input" placeholder="Search laptops, smartphones, headphones, gaming gear..." autocomplete="off">
-        <button id="navSearchClear" class="nav-search-clear" type="button" aria-label="Clear search">
+        <input type="text" id="globalSearchInput" class="nav-search-input" placeholder="Search MacBook M3, RTX 4080, Sony ANC, PS5 Pro..." autocomplete="off">
+        <button id="searchClearBtn" class="search-clear-btn" type="button" aria-label="Clear Search">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- Nav Actions -->
-      <div class="nav-actions">
-        <button class="action-btn" id="openWishlistBtn" title="Saved Wishlist">
+      <!-- Actions & Nav Tools -->
+      <div class="nav-tools">
+        
+        <!-- Live COD Notice Pill -->
+        <div class="cod-indicator-pill" title="Cash On Delivery Available Nationwide">
+          <span class="pulse-dot"></span>
+          <i class="fa-solid fa-money-bill-wave"></i>
+          <span>COD Active</span>
+        </div>
+
+        <!-- Wishlist Button -->
+        <button class="nav-icon-btn" id="openWishlistBtn" aria-label="Wishlist" title="View Wishlist">
           <i class="fa-solid fa-heart"></i>
-          <span>Wishlist</span>
-          <span class="badge-counter" id="wishlistBadge">0</span>
+          <span class="count-badge" id="wishlistCount">0</span>
         </button>
 
-        <button class="action-btn cart-btn" id="openCartBtn" title="Shopping Cart">
+        <!-- Cart Button -->
+        <button class="nav-icon-btn cart-trigger-btn" id="openCartBtn" aria-label="Cart" title="View Cart">
           <i class="fa-solid fa-cart-shopping"></i>
-          <span>Cart</span>
-          <span class="badge-counter" id="cartBadge">0</span>
+          <span class="count-badge" id="cartCount">0</span>
+          <span class="cart-btn-label">Cart</span>
         </button>
 
-        <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle theme">
+        <!-- Theme Toggle Button -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Switch Theme" title="Toggle Dark/Light Mode">
           <i class="fa-solid fa-sun" id="themeIcon"></i>
         </button>
       </div>
+
     </div>
   </header>
 
-  <!-- ================= Hero Banner ================= -->
-  <section class="hero">
-    <div class="hero-banner">
-      <div class="hero-content">
-        <div class="hero-tag">
-          <i class="fa-solid fa-microchip"></i>
-          <span>Next-Gen Consumer Technology</span>
-        </div>
-        <h2 class="hero-title">Experience The <span>Future of Tech</span> Today</h2>
-        <p class="hero-desc">Discover flagship laptops, AI-powered smartphones, studio-grade noise canceling audio, and pro esports gear with official brand warranties.</p>
-        
-        <div class="hero-cod-badge">
-          <i class="fa-solid fa-hand-holding-dollar fa-lg"></i>
-          <span>100% Cash On Delivery Available — Zero Upfront Payment Required!</span>
-        </div>
+  <!-- ================= Flash Deals Banner Bar ================= -->
+  <div class="flash-deals-strip">
+    <div class="container flash-strip-inner">
+      <div class="flash-title">
+        <i class="fa-solid fa-bolt flash-icon"></i>
+        <span>LIMITED TIME TECH FLASH SALE:</span>
       </div>
-    </div>
-
-    <!-- Feature Perks Bar -->
-    <div class="hero-perks">
-      <div class="perk-card">
-        <div class="perk-icon"><i class="fa-solid fa-truck-fast"></i></div>
-        <div class="perk-info">
-          <h4>Free Express Shipping</h4>
-          <p>Delivered in 2-3 business days</p>
-        </div>
+      <div class="flash-countdown" id="flashCountdown">
+        <div class="time-block"><span id="cdHours">04</span><small>HRS</small></div>
+        <span class="cd-colon">:</span>
+        <div class="time-block"><span id="cdMinutes">36</span><small>MIN</small></div>
+        <span class="cd-colon">:</span>
+        <div class="time-block"><span id="cdSeconds">18</span><small>SEC</small></div>
       </div>
-      <div class="perk-card">
-        <div class="perk-icon" style="color: #10b981; background: rgba(16,185,129,0.12);"><i class="fa-solid fa-money-bill-wave"></i></div>
-        <div class="perk-info">
-          <h4>Cash on Delivery</h4>
-          <p>Inspect & pay at your doorstep</p>
-        </div>
-      </div>
-      <div class="perk-card">
-        <div class="perk-icon" style="color: #f59e0b; background: rgba(245,158,11,0.12);"><i class="fa-solid fa-shield-halved"></i></div>
-        <div class="perk-info">
-          <h4>1-Year Official Warranty</h4>
-          <p>Genuine authentic electronics</p>
-        </div>
-      </div>
-      <div class="perk-card">
-        <div class="perk-icon" style="color: #ec4899; background: rgba(236,72,153,0.12);"><i class="fa-solid fa-arrow-rotate-left"></i></div>
-        <div class="perk-info">
-          <h4>7-Day Easy Returns</h4>
-          <p>Hassle-free replacement policy</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= Catalog & Filter Section ================= -->
-  <section class="catalog-section" id="catalogSection">
-    <div class="filter-bar">
-      <!-- Category Chips -->
-      <div class="category-chips-container" id="categoryChips">
-        <button class="category-chip active" data-category="all">⚡ All Electronics</button>
-        <button class="category-chip" data-category="laptops"><i class="fa-solid fa-laptop"></i> Laptops & PCs</button>
-        <button class="category-chip" data-category="smartphones"><i class="fa-solid fa-mobile-screen"></i> Smartphones & Tablets</button>
-        <button class="category-chip" data-category="audio"><i class="fa-solid fa-headphones"></i> Audio & Sound</button>
-        <button class="category-chip" data-category="wearables"><i class="fa-solid fa-clock"></i> Smartwatches</button>
-        <button class="category-chip" data-category="gaming"><i class="fa-solid fa-gamepad"></i> Gaming Gear</button>
-        <button class="category-chip" data-category="cameras"><i class="fa-solid fa-camera"></i> Cameras & Drones</button>
-      </div>
-
-      <!-- Controls Row -->
-      <div class="filter-controls-row">
-        <div class="results-meta">
-          Showing <strong id="displayedProductsCount">0</strong> electronics products
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
-          <select id="sortSelect" class="sort-select" aria-label="Sort products">
-            <option value="featured">Sort: Featured Picks</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="rating-desc">Customer Rating (Highest)</option>
-            <option value="name-asc">Name (A to Z)</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Products Grid -->
-    <div class="products-grid" id="productsGrid">
-      <!-- Injected dynamically via app.js -->
-    </div>
-  </section>
-
-  <!-- ================= Slide-Over Cart Drawer ================= -->
-  <div class="cart-overlay" id="cartOverlay">
-    <div class="cart-drawer">
-      <div class="cart-drawer-header">
-        <div class="cart-drawer-title">
-          <i class="fa-solid fa-cart-shopping" style="color: var(--cyan-primary);"></i>
-          <span>Your Cart (<span id="cartDrawerCount">0</span>)</span>
-        </div>
-        <button class="drawer-close-btn" id="closeCartBtn" aria-label="Close cart">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="cart-free-shipping-bar" id="freeShippingBar">
-        <i class="fa-solid fa-truck-fast"></i>
-        <span id="freeShippingText">You qualify for FREE Express Delivery!</span>
-      </div>
-
-      <div class="cart-items-list" id="cartItemsList">
-        <!-- Cart item rows dynamically populated -->
-      </div>
-
-      <div class="cart-drawer-footer" id="cartDrawerFooter">
-        <!-- Coupon input -->
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" id="couponInput" class="form-input" placeholder="Coupon Code (e.g. TECH10)" style="text-transform: uppercase;">
-          <button id="applyCouponBtn" class="action-btn" style="border-radius: var(--radius-md); white-space: nowrap;">Apply</button>
-        </div>
-        <div id="couponStatus" style="font-size: 0.8rem; display: none;"></div>
-
-        <div class="cart-summary-line">
-          <span>Subtotal</span>
-          <strong id="cartSubtotal">$0.00</strong>
-        </div>
-        <div class="cart-summary-line" id="discountRow" style="display: none; color: #10b981;">
-          <span>Coupon Discount (<span id="discountPercent">0%</span>)</span>
-          <strong id="cartDiscount">-$0.00</strong>
-        </div>
-        <div class="cart-summary-line">
-          <span>Delivery</span>
-          <strong style="color: #10b981;">FREE (Cash on Delivery)</strong>
-        </div>
-        <div class="cart-summary-line total">
-          <span>Total Payable</span>
-          <strong id="cartGrandTotal" style="color: var(--cyan-primary);">$0.00</strong>
-        </div>
-
-        <button class="checkout-btn" id="openCheckoutBtn">
-          <i class="fa-solid fa-hand-holding-dollar"></i>
-          <span>Proceed to Cash on Delivery</span>
-        </button>
+      <div class="flash-perk">
+        <i class="fa-solid fa-fire"></i> Up to <strong>20% OFF</strong> Flagship Gadgets With Free COD
       </div>
     </div>
   </div>
 
-  <!-- ================= Cash on Delivery (COD) Checkout Modal ================= -->
-  <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true">
-    <div class="modal-dialog">
+  <!-- ================= Hero Showcase Section ================= -->
+  <section class="hero-section">
+    <div class="hero-mesh-glow"></div>
+    <div class="container hero-grid">
+      
+      <!-- Hero Left: Pitch & CTAs -->
+      <div class="hero-content">
+        <div class="hero-chip">
+          <i class="fa-solid fa-microchip"></i>
+          <span>Next-Generation Electronics • 100% Genuine</span>
+        </div>
+        
+        <h1 class="hero-headline">
+          Upgrade Your Reality With <span class="gradient-text">Flagship Tech.</span>
+        </h1>
+        
+        <p class="hero-description">
+          Pakistan's premier destination for genuine Apple, ASUS ROG, Sony, DJI and Samsung innovations. 
+          Zero upfront payment required — order via <strong>Cash on Delivery</strong> and inspect your package at your doorstep before paying.
+        </p>
+
+        <!-- Live COD Highlights -->
+        <div class="hero-highlights">
+          <div class="highlight-item">
+            <i class="fa-solid fa-box-open"></i>
+            <span>Open-Parcel Doorstep Inspection</span>
+          </div>
+          <div class="highlight-item">
+            <i class="fa-solid fa-shield-check"></i>
+            <span>1-Year Official Warranty</span>
+          </div>
+          <div class="highlight-item">
+            <i class="fa-solid fa-truck-ramp-box"></i>
+            <span>Pay Cash To Courier Rider</span>
+          </div>
+        </div>
+
+        <!-- Hero Action Buttons -->
+        <div class="hero-actions">
+          <a href="#catalogSection" class="btn btn-primary">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Shop Flagship Deals</span>
+          </a>
+          <button class="btn btn-outline" id="howCodWorksBtn">
+            <i class="fa-solid fa-circle-question"></i>
+            <span>How Cash on Delivery Works</span>
+          </button>
+        </div>
+
+        <!-- Trust Stats Counter -->
+        <div class="hero-stats">
+          <div class="stat-box">
+            <span class="stat-number">50K+</span>
+            <span class="stat-label">Gadgets Delivered</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Original Specs</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-number">2-3 Days</span>
+            <span class="stat-label">Express Delivery</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-number">₨ 0</span>
+            <span class="stat-label">Advance Needed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Right: Interactive 3D Showcase Card -->
+      <div class="hero-showcase">
+        <div class="showcase-card" id="heroShowcaseCard">
+          <div class="showcase-glow"></div>
+          
+          <div class="showcase-top">
+            <span class="showcase-badge" id="heroBadge"><i class="fa-solid fa-fire"></i> Bestseller</span>
+            <span class="showcase-cod-tag"><i class="fa-solid fa-hand-holding-dollar"></i> Free COD</span>
+          </div>
+
+          <div class="showcase-image-wrap">
+            <img id="heroImage" src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80" alt="Featured Device" class="showcase-img">
+          </div>
+
+          <div class="showcase-body">
+            <div class="showcase-rating">
+              <i class="fa-solid fa-star"></i>
+              <span id="heroRating">4.9</span>
+              <span class="rating-count">(384 Techie Reviews)</span>
+            </div>
+            
+            <h3 class="showcase-title" id="heroTitle">Apple MacBook Pro 16" (M3 Max)</h3>
+            
+            <div class="showcase-specs-pills" id="heroSpecsPills">
+              <span class="spec-pill">M3 Max 16-Core</span>
+              <span class="spec-pill">36GB RAM</span>
+              <span class="spec-pill">1TB SSD</span>
+            </div>
+
+            <div class="showcase-pricing">
+              <div class="price-col">
+                <span class="price-label">Cash on Delivery Price:</span>
+                <span class="current-price" id="heroPrice">Rs. 945,000</span>
+                <span class="old-price" id="heroOldPrice">Rs. 1,050,000</span>
+              </div>
+              <button class="btn btn-primary btn-sm showcase-buy-btn" id="heroBuyBtn">
+                <i class="fa-solid fa-cart-plus"></i> Add to Cart
+              </button>
+            </div>
+          </div>
+
+          <!-- Showcase Navigation Dots -->
+          <div class="showcase-dots">
+            <button class="s-dot active" data-index="0" aria-label="MacBook Pro"></button>
+            <button class="s-dot" data-index="1" aria-label="ROG Zephyrus"></button>
+            <button class="s-dot" data-index="2" aria-label="iPhone 16 Pro Max"></button>
+            <button class="s-dot" data-index="3" aria-label="Sony ANC"></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= Value Guarantee Bar ================= -->
+  <section class="trust-bar">
+    <div class="container trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon"><i class="fa-solid fa-truck-fast"></i></div>
+        <div class="trust-text">
+          <h4>Free Express Shipping</h4>
+          <p>Delivered to your doorstep in 2-3 business days nationwide</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="trust-text">
+          <h4>100% Cash On Delivery</h4>
+          <p>Pay cash only when courier arrives with your parcel</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon"><i class="fa-solid fa-box-check"></i></div>
+        <div class="trust-text">
+          <h4>Open-Parcel Verification</h4>
+          <p>Inspect package seals before paying the delivery rider</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="trust-text">
+          <h4>1-Year Official Warranty</h4>
+          <p>Full brand replacement warranty & local support</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Catalog Section ================= -->
+  <section class="catalog-section" id="catalogSection">
+    <div class="container">
+      
+      <!-- Section Header -->
+      <div class="section-header">
+        <div>
+          <div class="section-tag"><i class="fa-solid fa-microchip"></i> Hardware Catalog</div>
+          <h2 class="section-title">Explore Flagship Electronics</h2>
+          <p class="section-subtitle">Select your gadget category or filter by your budget and specs.</p>
+        </div>
+
+        <!-- Live Results Counter -->
+        <div class="catalog-counter">
+          Showing <span id="displayedProductsCount">0</span> of <span id="totalProductsCount">0</span> Products
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="category-tabs" id="categoryTabs">
+        <button class="cat-pill active" data-category="all">
+          <i class="fa-solid fa-border-all"></i>
+          <span>All Gadgets</span>
+          <span class="cat-count" id="countAll">17</span>
+        </button>
+        <button class="cat-pill" data-category="laptops">
+          <i class="fa-solid fa-laptop"></i>
+          <span>Laptops & PCs</span>
+          <span class="cat-count" id="countLaptops">4</span>
+        </button>
+        <button class="cat-pill" data-category="phones">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>Smartphones</span>
+          <span class="cat-count" id="countPhones">3</span>
+        </button>
+        <button class="cat-pill" data-category="audio">
+          <i class="fa-solid fa-headphones"></i>
+          <span>Audio & ANC</span>
+          <span class="cat-count" id="countAudio">3</span>
+        </button>
+        <button class="cat-pill" data-category="wearables">
+          <i class="fa-solid fa-stopwatch-20"></i>
+          <span>Smartwatches</span>
+          <span class="cat-count" id="countWearables">2</span>
+        </button>
+        <button class="cat-pill" data-category="gaming">
+          <i class="fa-solid fa-gamepad"></i>
+          <span>Gaming & Consoles</span>
+          <span class="cat-count" id="countGaming">3</span>
+        </button>
+        <button class="cat-pill" data-category="drones">
+          <i class="fa-solid fa-camera"></i>
+          <span>Drones & Optics</span>
+          <span class="cat-count" id="countDrones">2</span>
+        </button>
+      </div>
+
+      <!-- Controls & Filter Toolbar -->
+      <div class="catalog-toolbar">
+        
+        <!-- Left: Search input inside toolbar -->
+        <div class="toolbar-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="catalogSearchInput" placeholder="Filter by brand, model or keyword...">
+        </div>
+
+        <!-- Middle: Price Range Filter -->
+        <div class="toolbar-price">
+          <label for="priceRangeSlider">Max Price: <strong id="priceDisplay">Rs. 1,050,000</strong></label>
+          <input type="range" id="priceRangeSlider" min="40000" max="1050000" step="10000" value="1050000">
+        </div>
+
+        <!-- Right: Sort Dropdown & In-Stock Only -->
+        <div class="toolbar-sort">
+          <label for="sortSelect"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort:</label>
+          <select id="sortSelect" class="styled-select">
+            <option value="featured">🔥 Featured & Trending</option>
+            <option value="price-asc">₨ Price: Low to High</option>
+            <option value="price-desc">₨ Price: High to Low</option>
+            <option value="rating">⭐ Highest Rated</option>
+            <option value="discount">⚡ Highest Discount</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Active Filters Tag Bar -->
+      <div class="active-filters-bar" id="activeFiltersBar" style="display: none;">
+        <span>Active Filters:</span>
+        <div class="filter-chips" id="filterChips"></div>
+        <button class="clear-all-filters-btn" id="clearAllFiltersBtn">Reset All</button>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="products-grid" id="productsGrid">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon"><i class="fa-solid fa-microchip"></i></div>
+        <h3>No Electronics Found</h3>
+        <p>No products match your current search and price filter criteria.</p>
+        <button class="btn btn-primary" id="resetFiltersEmptyBtn">Reset Filters</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= How Cash on Delivery Works Section ================= -->
+  <section class="how-cod-section" id="howCodSection">
+    <div class="container">
+      <div class="section-header text-center">
+        <div class="section-tag"><i class="fa-solid fa-hand-holding-dollar"></i> Safe & Simple</div>
+        <h2 class="section-title">How Cash On Delivery Works</h2>
+        <p class="section-subtitle">Zero advance payment. Zero credit card required. Pure peace of mind.</p>
+      </div>
+
+      <div class="cod-steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+          <h4>Select Your Gadgets</h4>
+          <p>Browse our catalog of original laptops, smartphones, audio, and consoles. Add your picks to cart.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+          <h4>Provide Delivery Info</h4>
+          <p>Fill in your shipping address, city, and WhatsApp number. No card details or OTP needed.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon"><i class="fa-solid fa-box"></i></div>
+          <h4>Rider Arrives At Door</h4>
+          <p>Our courier partner arrives at your address within 2-3 business days with tracking updates.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">04</div>
+          <div class="step-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+          <h4>Inspect & Pay Cash</h4>
+          <p>Verify your parcel seal and device box, then hand cash to the delivery rider. Easy & 100% secure!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Customer Testimonials Section ================= -->
+  <section class="testimonials-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <div class="section-tag"><i class="fa-solid fa-comments"></i> Verified Customers</div>
+        <h2 class="section-title">What Tech Enthusiasts Say</h2>
+        <p class="section-subtitle">Real experiences from customers across Pakistan ordering via Cash on Delivery.</p>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="t-rating">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="t-comment">"Ordered the Sony WH-1000XM5 via Cash on Delivery to DHA Lahore. Arrived in just 2 days. The rider let me verify the intact Sony security seal before I handed over the cash. 10/10 service!"</p>
+          <div class="t-user">
+            <div class="t-avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+              <strong>Hamza Tariq</strong>
+              <span>Lahore • Verified COD Order</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="t-rating">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="t-comment">"Got the ASUS ROG Zephyrus G16 OLED. Was skeptical about ordering such an expensive laptop online, but TechSphere's COD option gave me complete peace of mind. Beast performance!"</p>
+          <div class="t-user">
+            <div class="t-avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+              <strong>Zubair Khan</strong>
+              <span>Islamabad • Verified COD Order</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="t-rating">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="t-comment">"Purchased the iPhone 16 Pro Max 512GB. PTA approved, brand new in sealed box. Coupon TECH10 saved me huge money and courier delivery was super professional in Karachi."</p>
+          <div class="t-user">
+            <div class="t-avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+              <strong>Ali Raza</strong>
+              <span>Karachi • Verified COD Order</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ Section ================= -->
+  <section class="faq-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <div class="section-tag"><i class="fa-solid fa-circle-question"></i> Help & FAQs</div>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about our Cash on Delivery and warranty policies.</p>
+      </div>
+
+      <div class="faq-accordion">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Do I have to pay any advance amount for Cash on Delivery?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p>No! There is <strong>₨ 0 advance payment</strong> required. You simply place your order on TechSphere with your delivery details, and pay the exact invoice amount in cash directly to the courier rider upon delivery at your doorstep.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Can I inspect the parcel before paying the courier rider?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p>Yes. We permit flyer open-parcel inspection so you can verify that the original manufacturer box and security seals are intact and undamaged before handing over the cash payment.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Are these electronics 100% original with official warranty?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p>Every single product listed on TechSphere is 100% authentic, brand-new, and comes with a 1-year official brand warranty card along with our 7-day hassle-free replacement coverage.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How many days does delivery take across Pakistan?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p>Major cities (Karachi, Lahore, Islamabad, Rawalpindi) typically receive deliveries within 24 to 48 hours. Other cities and regions across Pakistan are delivered within 2 to 3 business days via TCS / Leopard express couriers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Footer ================= -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <div class="brand-logo footer-logo">
+          <div class="logo-symbol"><i class="fa-solid fa-bolt-lightning"></i></div>
+          <span class="brand-name">Tech<span class="brand-highlight">Sphere</span></span>
+        </div>
+        <p class="footer-desc">Next-Gen Electronics & Flagship Gadgets with 100% Cash on Delivery across Pakistan. Authentic brand products with official warranties.</p>
+        <div class="footer-socials">
+          <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Electronics Categories</h4>
+        <ul class="footer-links">
+          <li><a href="#catalogSection" data-cat="laptops">Laptops & High-End PCs</a></li>
+          <li><a href="#catalogSection" data-cat="phones">Flagship Smartphones</a></li>
+          <li><a href="#catalogSection" data-cat="audio">Studio Headphones & ANC</a></li>
+          <li><a href="#catalogSection" data-cat="gaming">Gaming Gear & Consoles</a></li>
+          <li><a href="#catalogSection" data-cat="drones">Drones & 4K Cameras</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Payment & Trust</h4>
+        <ul class="footer-links">
+          <li><i class="fa-solid fa-hand-holding-dollar"></i> 100% Cash On Delivery (Doorstep)</li>
+          <li><i class="fa-solid fa-box-open"></i> Open-Parcel Inspection</li>
+          <li><i class="fa-solid fa-truck-fast"></i> TCS & Leopard Express Courier</li>
+          <li><i class="fa-solid fa-rotate-left"></i> 7 Days Easy Replacement</li>
+          <li><i class="fa-solid fa-shield"></i> 1-Year Official Warranty</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Customer Support</h4>
+        <div class="support-info">
+          <p><i class="fa-solid fa-phone"></i> +92 (300) 123-4567</p>
+          <p><i class="fa-solid fa-envelope"></i> support@techsphere.pk</p>
+          <p><i class="fa-brands fa-whatsapp"></i> WhatsApp Order Confirmation</p>
+          <p><i class="fa-solid fa-clock"></i> Mon - Sat: 9:00 AM - 10:00 PM</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>&copy; 2026 TechSphere Electronics. Designed & Built by <strong>Bashir Ahmed</strong>. All Rights Reserved.</p>
+        <div class="footer-badge">
+          <i class="fa-solid fa-bolt"></i> Portfolio Grade Project 2 of 6
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= Quick View Modal ================= -->
+  <div class="modal-backdrop" id="quickViewModal">
+    <div class="modal-dialog quickview-dialog">
+      <button class="modal-close-btn" id="closeQuickViewBtn" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="quickview-body" id="quickViewContent">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Cart Drawer (Slide-Over) ================= -->
+  <div class="cart-backdrop" id="cartBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+      <div class="cart-header-title">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <h3>Your Tech Cart</h3>
+        <span class="cart-counter-pill" id="cartDrawerCount">0 items</span>
+      </div>
+      <button class="cart-close-btn" id="closeCartBtn" aria-label="Close Cart">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- COD Free Shipping Progress Bar -->
+    <div class="free-shipping-progress">
+      <div class="progress-info">
+        <span id="shippingProgressText"><i class="fa-solid fa-truck-fast"></i> Free COD Express Shipping Unlocked!</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar-fill" id="shippingProgressBar" style="width: 100%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Items Scroll List -->
+    <div class="cart-items-list" id="cartItemsList">
+      <!-- Injected dynamically via app.js -->
+    </div>
+
+    <!-- Cart Footer & Checkout -->
+    <div class="cart-drawer-footer" id="cartFooter">
+      
+      <!-- Promo Code Input -->
+      <div class="promo-box">
+        <div class="promo-input-row">
+          <i class="fa-solid fa-tag promo-icon"></i>
+          <input type="text" id="couponInput" placeholder="Enter coupon (e.g. TECH10)" autocomplete="off">
+          <button id="applyCouponBtn" class="btn btn-sm btn-outline">Apply</button>
+        </div>
+        <div class="coupon-chips">
+          <button class="chip" data-code="TECH10">TECH10 (10% OFF)</button>
+          <button class="chip" data-code="COD5">COD5 (5% OFF)</button>
+          <button class="chip" data-code="WELCOME20">WELCOME20 (20% OFF)</button>
+        </div>
+        <div class="coupon-feedback" id="couponFeedback"></div>
+      </div>
+
+      <!-- Pricing Summary Breakdown -->
+      <div class="cart-summary-breakdown">
+        <div class="summary-line">
+          <span>Subtotal:</span>
+          <span id="cartSubtotal">Rs. 0</span>
+        </div>
+        <div class="summary-line discount-line" id="cartDiscountRow" style="display: none;">
+          <span>Coupon Discount:</span>
+          <span id="cartDiscount">-Rs. 0</span>
+        </div>
+        <div class="summary-line">
+          <span>Express Delivery:</span>
+          <span class="text-green">FREE (Rs. 0)</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-line total-line">
+          <div>
+            <strong>Payable on Delivery:</strong>
+            <small class="d-block text-muted">Cash to be paid to rider at doorstep</small>
+          </div>
+          <strong class="total-amount" id="cartTotal">Rs. 0</strong>
+        </div>
+      </div>
+
+      <!-- Checkout Button -->
+      <button class="btn btn-primary btn-block checkout-trigger-btn" id="proceedToCheckoutBtn">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <span>Proceed To Cash On Delivery</span>
+      </button>
+
+      <div class="cart-cod-guarantee">
+        <i class="fa-solid fa-shield-halved"></i> 100% Cash on Delivery • No Credit/Debit Card Needed
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= Cash on Delivery Checkout Modal ================= -->
+  <div class="modal-backdrop" id="checkoutModal">
+    <div class="modal-dialog checkout-dialog">
       <button class="modal-close-btn" id="closeCheckoutBtn" aria-label="Close Checkout">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <div class="cod-banner">
-        <i class="fa-solid fa-money-bill-wave fa-xl"></i>
-        <div>
-          <div style="font-size: 1.05rem;">Cash On Delivery (COD) Order</div>
-          <div style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-top: 0.15rem;">
-            No card or advance payment required. Pay exact cash when your package arrives at your doorstep!
+      <!-- Step 1: COD Details Form -->
+      <div id="checkoutFormStep">
+        <div class="checkout-modal-header">
+          <div class="cod-badge-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+          <div>
+            <h3>Cash on Delivery Checkout</h3>
+            <p>Provide your delivery details. Pay in cash directly to the courier at your doorstep!</p>
+          </div>
+        </div>
+
+        <form id="codOrderForm" class="cod-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="orderFullName"><i class="fa-solid fa-user"></i> Full Name *</label>
+              <input type="text" id="orderFullName" required placeholder="e.g. Bashir Ahmed">
+            </div>
+            <div class="form-group">
+              <label for="orderPhone"><i class="fa-brands fa-whatsapp"></i> Phone / WhatsApp *</label>
+              <input type="tel" id="orderPhone" required placeholder="0300-1234567">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="orderEmail"><i class="fa-solid fa-envelope"></i> Email (For Order Tracking)</label>
+              <input type="email" id="orderEmail" placeholder="your.email@example.com">
+            </div>
+            <div class="form-group">
+              <label for="orderCity"><i class="fa-solid fa-city"></i> Delivery City *</label>
+              <select id="orderCity" required class="styled-select">
+                <option value="">Select City...</option>
+                <option value="Karachi">Karachi</option>
+                <option value="Lahore">Lahore</option>
+                <option value="Islamabad">Islamabad</option>
+                <option value="Rawalpindi">Rawalpindi</option>
+                <option value="Faisalabad">Faisalabad</option>
+                <option value="Peshawar">Peshawar</option>
+                <option value="Multan">Multan</option>
+                <option value="Quetta">Quetta</option>
+                <option value="Sialkot">Sialkot</option>
+                <option value="Gujranwala">Gujranwala</option>
+                <option value="Other">Other City</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="orderAddress"><i class="fa-solid fa-map-location-dot"></i> Complete Street Address *</label>
+            <textarea id="orderAddress" required rows="2" placeholder="House #, Street name, Sector / Area..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="orderNotes"><i class="fa-solid fa-note-sticky"></i> Delivery Instructions / Landmark (Optional)</label>
+            <input type="text" id="orderNotes" placeholder="e.g. Near City Hospital, deliver after 2 PM">
+          </div>
+
+          <!-- Order Summary in Form -->
+          <div class="checkout-review-box">
+            <div class="review-title">
+              <span>Order Summary (<span id="modalOrderItemsCount">0</span> items)</span>
+              <span class="total-payable-pill" id="modalOrderTotal">Rs. 0</span>
+            </div>
+            <div class="payment-method-box">
+              <div class="payment-method-header">
+                <div class="pm-radio-circle selected"></div>
+                <strong>Cash on Delivery (Pay at Doorstep)</strong>
+              </div>
+              <p>You do not need to pay anything right now. When the courier arrives, open the parcel to inspect the package seals and pay the exact cash amount.</p>
+            </div>
+          </div>
+
+          <div class="checkout-actions">
+            <button type="button" class="btn btn-outline" id="cancelCheckoutBtn">Back to Cart</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="submitOrderBtn">
+              <i class="fa-solid fa-check"></i>
+              <span>Confirm Cash On Delivery Order</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: Order Success View -->
+      <div id="checkoutSuccessStep" style="display: none;">
+        <div class="order-success-card">
+          <div class="success-icon-wrap">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <h2>Order Successfully Placed!</h2>
+          <p class="success-subtitle">Congratulations! Your Cash on Delivery order has been registered.</p>
+          
+          <div class="order-receipt-card">
+            <div class="receipt-row">
+              <span>Order Tracking ID:</span>
+              <strong id="receiptOrderId" class="highlight-id">#TS-98421</strong>
+            </div>
+            <div class="receipt-row">
+              <span>Customer Name:</span>
+              <strong id="receiptCustomerName">Bashir Ahmed</strong>
+            </div>
+            <div class="receipt-row">
+              <span>Delivery Destination:</span>
+              <strong id="receiptCity">Karachi, Pakistan</strong>
+            </div>
+            <div class="receipt-row">
+              <span>Estimated Delivery:</span>
+              <strong class="text-green" id="receiptDeliveryDate">Within 2-3 Business Days</strong>
+            </div>
+            <div class="receipt-row">
+              <span>Payment Mode:</span>
+              <strong>Cash on Delivery (Pay to Rider)</strong>
+            </div>
+            <div class="receipt-divider"></div>
+            <div class="receipt-row receipt-total">
+              <span>Total Cash Payable to Courier:</span>
+              <strong id="receiptTotalAmount" class="text-cyan">Rs. 0</strong>
+            </div>
+          </div>
+
+          <div class="success-instructions">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Our team will send a WhatsApp confirmation message to your phone before dispatching your package. Please keep the exact cash ready for the courier rider!</span>
+          </div>
+
+          <div class="success-actions">
+            <button class="btn btn-outline" id="printReceiptBtn">
+              <i class="fa-solid fa-print"></i> Print Receipt
+            </button>
+            <button class="btn btn-primary" id="continueShoppingBtn">
+              <i class="fa-solid fa-bag-shopping"></i> Continue Shopping
+            </button>
           </div>
         </div>
       </div>
 
-      <form id="codCheckoutForm" class="checkout-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="custName">Full Name *</label>
-            <input type="text" id="custName" class="form-input" placeholder="e.g. Bashir Ahmed" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="custPhone">Phone / WhatsApp Number *</label>
-            <input type="tel" id="custPhone" class="form-input" placeholder="e.g. 0300 1234567" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="custEmail">Email Address (Optional)</label>
-            <input type="email" id="custEmail" class="form-input" placeholder="e.g. name@gmail.com">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="custCity">City *</label>
-            <select id="custCity" class="form-select" required>
-              <option value="">Select your city...</option>
-              <option value="Karachi">Karachi</option>
-              <option value="Lahore">Lahore</option>
-              <option value="Islamabad">Islamabad</option>
-              <option value="Rawalpindi">Rawalpindi</option>
-              <option value="Faisalabad">Faisalabad</option>
-              <option value="Multan">Multan</option>
-              <option value="Peshawar">Peshawar</option>
-              <option value="Quetta">Quetta</option>
-              <option value="Sialkot">Sialkot</option>
-              <option value="Hyderabad">Hyderabad</option>
-              <option value="Other">Other City / Nationwide</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="custAddress">Complete Delivery Address *</label>
-          <textarea id="custAddress" class="form-textarea" rows="2" placeholder="House / Flat No., Street, Sector, Area Landmark" required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="custNotes">Special Delivery Instructions (Optional)</label>
-          <input type="text" id="custNotes" class="form-input" placeholder="e.g. Call before delivery, deliver after 2 PM">
-        </div>
-
-        <!-- Checkout Order Summary recap -->
-        <div class="checkout-summary-box">
-          <div style="font-weight: 700; margin-bottom: 0.6rem; font-size: 0.95rem;">Order Review:</div>
-          <div id="checkoutOrderItemsList" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; max-height: 120px; overflow-y: auto;">
-            <!-- Brief items list -->
-          </div>
-          <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
-            <span>Total Cash to Pay:</span>
-            <span id="checkoutPayableTotal" style="color: var(--cyan-primary);">$0.00</span>
-          </div>
-        </div>
-
-        <button type="submit" class="checkout-btn" id="confirmOrderBtn">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>Confirm Cash on Delivery Order</span>
-        </button>
-      </form>
     </div>
   </div>
 
-  <!-- ================= Order Success Confirmation Modal ================= -->
-  <div class="modal-overlay" id="orderSuccessModal" role="dialog" aria-modal="true">
-    <div class="modal-dialog" style="max-width: 540px;">
-      <div class="order-success-card">
-        <div class="success-icon-badge">
-          <i class="fa-solid fa-check"></i>
-        </div>
-        <h3 style="font-size: 1.6rem; font-weight: 800;">Order Confirmed! 🎉</h3>
-        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">
-          Thank you for shopping with TechSphere! Your order has been placed successfully via <strong>Cash on Delivery</strong>.
-        </p>
-
-        <div class="order-id-pill" id="successOrderId">#TS-94821</div>
-
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; width: 100%; text-align: left; font-size: 0.85rem;">
-          <div style="margin-bottom: 0.4rem;"><strong>Customer:</strong> <span id="successCustomerName">-</span></div>
-          <div style="margin-bottom: 0.4rem;"><strong>Phone:</strong> <span id="successCustomerPhone">-</span></div>
-          <div style="margin-bottom: 0.4rem;"><strong>Shipping Address:</strong> <span id="successCustomerAddress">-</span></div>
-          <div style="margin-bottom: 0.4rem;"><strong>Payable at Doorstep:</strong> <strong id="successPayableAmount" style="color: var(--cyan-primary);">-</strong></div>
-          <div style="color: var(--text-muted); margin-top: 0.6rem; font-size: 0.8rem;">
-            <i class="fa-solid fa-phone-volume" style="color: #10b981;"></i> Our representative will call your number to verify before rider dispatch.
-          </div>
-        </div>
-
-        <button class="checkout-btn" id="continueShoppingBtn" style="margin-top: 0.5rem;">
-          <i class="fa-solid fa-bag-shopping"></i>
-          <span>Continue Shopping</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= Product Quick-View Modal ================= -->
-  <div class="modal-overlay" id="quickViewModal" role="dialog" aria-modal="true">
-    <div class="modal-dialog" style="max-width: 780px;">
-      <button class="modal-close-btn" id="closeQuickViewBtn" aria-label="Close Details">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; align-items: start;" id="quickViewContent">
-        <!-- Injected via app.js -->
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= Wishlist Modal ================= -->
-  <div class="modal-overlay" id="wishlistModal" role="dialog" aria-modal="true">
-    <div class="modal-dialog" style="max-width: 600px;">
-      <button class="modal-close-btn" id="closeWishlistBtn" aria-label="Close Wishlist">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <h3 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem;">
-        <i class="fa-solid fa-heart" style="color: #ef4444;"></i> Saved Wishlist (<span id="wishlistModalCount">0</span>)
-      </h3>
-
-      <div id="wishlistItemsList" style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 400px; overflow-y: auto;">
-        <!-- Injected via app.js -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast System Container -->
+  <!-- ================= Toast Notification Center ================= -->
   <div class="toast-container" id="toastContainer"></div>
-
-  <!-- ================= Footer ================= -->
-  <footer class="footer">
-    <div class="footer-content">
-      <div class="brand">
-        <div class="brand-icon" style="width: 36px; height: 36px; font-size: 1.1rem;">
-          <i class="fa-solid fa-bolt-lightning"></i>
-        </div>
-        <div class="brand-title" style="text-align: left;">
-          <h2 style="font-size: 1.2rem; font-weight: 800;">TechSphere</h2>
-          <p style="font-size: 0.65rem;">Next-Gen Electronics Store</p>
-        </div>
-      </div>
-
-      <div class="footer-links">
-        <a href="https://github.com/bashirahmed-Developer" target="_blank" rel="noopener noreferrer" class="footer-link">
-          <i class="fa-brands fa-github"></i> GitHub Profile
-        </a>
-        <a href="#" class="footer-link">Laptops & PCs</a>
-        <a href="#" class="footer-link">Smartphones</a>
-        <a href="#" class="footer-link">Audio & Sound</a>
-        <a href="#" class="footer-link">Gaming Gear</a>
-        <a href="#" class="footer-link">Cash on Delivery Policy</a>
-      </div>
-
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-        Designed & Built with ❤️ by <a href="https://github.com/bashirahmed-Developer" target="_blank" rel="noopener noreferrer" style="color: var(--cyan-primary); text-decoration: none; font-weight: 700;">Bashir Ahmed</a> &copy; 2026. All rights reserved.
-      </p>
-    </div>
-  </footer>
 
   <!-- Scripts -->
   <script src="products-data.js"></script>

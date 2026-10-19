@@ -1,754 +1,884 @@
 /**
- * TechSphere - Electronics & Tech Store Core Logic
- * Author: Bashir Ahmed (github.com/bashirahmed-Developer)
+ * TechSphere - Interactive Store Application
+ * State Management, Filtering, Cart Drawer, COD Checkout, and Micro-interactions.
  */
 
-(function () {
-  'use strict';
+// ================= State Management =================
+const AppState = {
+  products: TECH_PRODUCTS || [],
+  cart: JSON.parse(localStorage.getItem('techsphere_cart') || '[]'),
+  wishlist: JSON.parse(localStorage.getItem('techsphere_wishlist') || '[]'),
+  currentCategory: 'all',
+  searchQuery: '',
+  maxPrice: 1050000,
+  sortBy: 'featured',
+  activeCoupon: null,
+  heroIndex: 0
+};
 
-  // ==========================================
-  // Application State
-  // ==========================================
-  const state = {
-    products: typeof TECH_PRODUCTS !== 'undefined' ? TECH_PRODUCTS : [],
-    cart: JSON.parse(localStorage.getItem('techsphere_cart') || '[]'),
-    wishlist: JSON.parse(localStorage.getItem('techsphere_wishlist') || '[]'),
-    theme: localStorage.getItem('techsphere_theme') || 'dark',
-    activeCategory: 'all',
-    searchQuery: '',
-    sortBy: 'featured',
-    appliedCoupon: null
-  };
+// ================= Utility Functions =================
+function formatPKR(amount) {
+  return 'Rs. ' + Math.round(amount).toLocaleString('en-PK');
+}
 
-  const VALID_COUPONS = {
-    'TECH10': 10,
-    'WELCOME20': 20,
-    'VIP15': 15,
-    'COD5': 5
-  };
+function saveCartToStorage() {
+  localStorage.setItem('techsphere_cart', JSON.stringify(AppState.cart));
+}
 
-  // ==========================================
-  // DOM Elements
-  // ==========================================
-  const DOM = {
-    themeToggleBtn: document.getElementById('themeToggleBtn'),
-    themeIcon: document.getElementById('themeIcon'),
-    brandHomeBtn: document.getElementById('brandHomeBtn'),
-    
-    navSearchInput: document.getElementById('navSearchInput'),
-    navSearchClear: document.getElementById('navSearchClear'),
-    
-    cartBadge: document.getElementById('cartBadge'),
-    wishlistBadge: document.getElementById('wishlistBadge'),
-    
-    categoryChips: document.getElementById('categoryChips'),
-    sortSelect: document.getElementById('sortSelect'),
-    displayedProductsCount: document.getElementById('displayedProductsCount'),
-    productsGrid: document.getElementById('productsGrid'),
-    
-    cartOverlay: document.getElementById('cartOverlay'),
-    openCartBtn: document.getElementById('openCartBtn'),
-    closeCartBtn: document.getElementById('closeCartBtn'),
-    cartDrawerCount: document.getElementById('cartDrawerCount'),
-    cartItemsList: document.getElementById('cartItemsList'),
-    cartSubtotal: document.getElementById('cartSubtotal'),
-    discountRow: document.getElementById('discountRow'),
-    discountPercent: document.getElementById('discountPercent'),
-    cartDiscount: document.getElementById('cartDiscount'),
-    cartGrandTotal: document.getElementById('cartGrandTotal'),
-    couponInput: document.getElementById('couponInput'),
-    applyCouponBtn: document.getElementById('applyCouponBtn'),
-    couponStatus: document.getElementById('couponStatus'),
-    openCheckoutBtn: document.getElementById('openCheckoutBtn'),
-    
-    checkoutModal: document.getElementById('checkoutModal'),
-    closeCheckoutBtn: document.getElementById('closeCheckoutBtn'),
-    codCheckoutForm: document.getElementById('codCheckoutForm'),
-    custName: document.getElementById('custName'),
-    custPhone: document.getElementById('custPhone'),
-    custEmail: document.getElementById('custEmail'),
-    custCity: document.getElementById('custCity'),
-    custAddress: document.getElementById('custAddress'),
-    custNotes: document.getElementById('custNotes'),
-    checkoutOrderItemsList: document.getElementById('checkoutOrderItemsList'),
-    checkoutPayableTotal: document.getElementById('checkoutPayableTotal'),
-    confirmOrderBtn: document.getElementById('confirmOrderBtn'),
-    
-    orderSuccessModal: document.getElementById('orderSuccessModal'),
-    successOrderId: document.getElementById('successOrderId'),
-    successCustomerName: document.getElementById('successCustomerName'),
-    successCustomerPhone: document.getElementById('successCustomerPhone'),
-    successCustomerAddress: document.getElementById('successCustomerAddress'),
-    successPayableAmount: document.getElementById('successPayableAmount'),
-    continueShoppingBtn: document.getElementById('continueShoppingBtn'),
-    
-    quickViewModal: document.getElementById('quickViewModal'),
-    closeQuickViewBtn: document.getElementById('closeQuickViewBtn'),
-    quickViewContent: document.getElementById('quickViewContent'),
-    
-    wishlistModal: document.getElementById('wishlistModal'),
-    openWishlistBtn: document.getElementById('openWishlistBtn'),
-    closeWishlistBtn: document.getElementById('closeWishlistBtn'),
-    wishlistModalCount: document.getElementById('wishlistModalCount'),
-    wishlistItemsList: document.getElementById('wishlistItemsList'),
-    
-    toastContainer: document.getElementById('toastContainer')
-  };
+function saveWishlistToStorage() {
+  localStorage.setItem('techsphere_wishlist', JSON.stringify(AppState.wishlist));
+}
 
-  function formatPrice(amount) {
-    return '$' + Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-info';
+  toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add('show'));
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3200);
+}
+
+// ================= Flash Countdown Timer =================
+function initFlashCountdown() {
+  let targetTime = new Date().getTime() + (4 * 3600 + 36 * 60 + 18) * 1000;
+
+  setInterval(() => {
+    const now = new Date().getTime();
+    const distance = Math.max(0, targetTime - now);
+
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    const cdH = document.getElementById('cdHours');
+    const cdM = document.getElementById('cdMinutes');
+    const cdS = document.getElementById('cdSeconds');
+
+    if (cdH) cdH.textContent = String(hours).padStart(2, '0');
+    if (cdM) cdM.textContent = String(minutes).padStart(2, '0');
+    if (cdS) cdS.textContent = String(seconds).padStart(2, '0');
+  }, 1000);
+}
+
+// ================= Hero Showcase Rotation =================
+const HERO_ITEMS = [
+  {
+    id: "ts-lap-01",
+    badge: "Bestseller",
+    badgeIcon: "fa-fire",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80",
+    rating: 4.9,
+    reviews: "384 Reviews",
+    title: "Apple MacBook Pro 16\" (M3 Max)",
+    specs: ["M3 Max 16-Core", "36GB RAM", "1TB SSD"],
+    price: 945000,
+    oldPrice: 1050000
+  },
+  {
+    id: "ts-lap-02",
+    badge: "Esports Rig",
+    badgeIcon: "fa-gamepad",
+    image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=900&q=80",
+    rating: 4.8,
+    reviews: "219 Reviews",
+    title: "ASUS ROG Zephyrus G16 OLED (2024)",
+    specs: ["Core Ultra 9", "RTX 4080 12GB", "240Hz OLED"],
+    price: 685000,
+    oldPrice: 750000
+  },
+  {
+    id: "ts-phn-01",
+    badge: "Flagship Phone",
+    badgeIcon: "fa-mobile-screen",
+    image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=900&q=80",
+    rating: 4.9,
+    reviews: "512 Reviews",
+    title: "Apple iPhone 16 Pro Max (512GB)",
+    specs: ["A18 Pro Chip", "48MP Fusion", "6.9\" 120Hz"],
+    price: 525000,
+    oldPrice: 565000
+  },
+  {
+    id: "ts-aud-01",
+    badge: "#1 ANC Headphone",
+    badgeIcon: "fa-headphones",
+    image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
+    rating: 4.9,
+    reviews: "820 Reviews",
+    title: "Sony WH-1000XM5 Wireless ANC",
+    specs: ["Dual Processor V1", "30Hr Battery", "LDAC Hi-Res"],
+    price: 115000,
+    oldPrice: 135000
   }
+];
 
-  function showToast(message, icon) {
-    icon = icon || 'fa-circle-check';
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid ' + icon + '" style="color: var(--cyan-primary);"></i> <span>' + message + '</span>';
-    DOM.toastContainer.appendChild(toast);
+function updateHeroShowcase(index) {
+  AppState.heroIndex = index;
+  const item = HERO_ITEMS[index];
+  if (!item) return;
+
+  const heroBadge = document.getElementById('heroBadge');
+  const heroImage = document.getElementById('heroImage');
+  const heroRating = document.getElementById('heroRating');
+  const heroTitle = document.getElementById('heroTitle');
+  const heroSpecsPills = document.getElementById('heroSpecsPills');
+  const heroPrice = document.getElementById('heroPrice');
+  const heroOldPrice = document.getElementById('heroOldPrice');
+  const heroBuyBtn = document.getElementById('heroBuyBtn');
+
+  if (heroBadge) heroBadge.innerHTML = `<i class="fa-solid ${item.badgeIcon}"></i> ${item.badge}`;
+  if (heroImage) {
+    heroImage.style.opacity = '0';
     setTimeout(() => {
-      if (toast.parentNode) toast.parentNode.removeChild(toast);
-    }, 3000);
+      heroImage.src = item.image;
+      heroImage.style.opacity = '1';
+    }, 150);
+  }
+  if (heroRating) heroRating.textContent = item.rating;
+  if (heroTitle) heroTitle.textContent = item.title;
+  if (heroSpecsPills) {
+    heroSpecsPills.innerHTML = item.specs.map(s => `<span class="spec-pill">${s}</span>`).join('');
+  }
+  if (heroPrice) heroPrice.textContent = formatPKR(item.price);
+  if (heroOldPrice) heroOldPrice.textContent = formatPKR(item.oldPrice);
+
+  if (heroBuyBtn) {
+    heroBuyBtn.onclick = () => {
+      addToCart(item.id);
+      showToast(`Added ${item.title} to cart!`, 'success');
+    };
   }
 
-  function applyTheme(theme) {
-    state.theme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('techsphere_theme', theme);
-    if (theme === 'light') {
-      DOM.themeIcon.className = 'fa-solid fa-moon';
-      DOM.themeToggleBtn.title = 'Switch to Dark Mode';
-    } else {
-      DOM.themeIcon.className = 'fa-solid fa-sun';
-      DOM.themeToggleBtn.title = 'Switch to Light Mode';
-    }
-  }
-
-  DOM.themeToggleBtn.addEventListener('click', () => {
-    const next = state.theme === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    showToast('Switched to ' + next + ' mode', next === 'dark' ? 'fa-moon' : 'fa-sun');
+  // Update dots
+  document.querySelectorAll('.showcase-dots .s-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
   });
+}
 
-  function getFilteredProducts() {
-    let list = [...state.products];
+function initHeroRotation() {
+  updateHeroShowcase(0);
 
-    if (state.activeCategory !== 'all') {
-      list = list.filter(p => p.category === state.activeCategory);
-    }
-
-    if (state.searchQuery.trim()) {
-      const q = state.searchQuery.toLowerCase().trim();
-      list = list.filter(p => {
-        const name = (p.name || '').toLowerCase();
-        const brand = (p.brand || '').toLowerCase();
-        const desc = (p.description || '').toLowerCase();
-        const cat = (p.categoryLabel || '').toLowerCase();
-        return name.includes(q) || brand.includes(q) || desc.includes(q) || cat.includes(q);
-      });
-    }
-
-    switch (state.sortBy) {
-      case 'price-asc':
-        list.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        list.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating-desc':
-        list.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'name-asc':
-        list.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      default:
-        break;
-    }
-
-    return list;
-  }
-
-  function renderProducts() {
-    const items = getFilteredProducts();
-    DOM.displayedProductsCount.textContent = items.length;
-
-    if (!items.length) {
-      DOM.productsGrid.innerHTML = `
-        <div class="empty-state">
-          <i class="fa-solid fa-plug-circle-xmark"></i>
-          <h3>No electronics match your search</h3>
-          <p>Try searching for a different gadget, brand, or select another category.</p>
-          <button class="checkout-btn" style="max-width: 220px; margin: 0 auto;" id="resetCatalogBtn">View All Electronics</button>
-        </div>
-      `;
-      document.getElementById('resetCatalogBtn')?.addEventListener('click', () => {
-        state.activeCategory = 'all';
-        state.searchQuery = '';
-        DOM.navSearchInput.value = '';
-        DOM.navSearchClear.style.display = 'none';
-        DOM.categoryChips.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c.dataset.category === 'all'));
-        renderProducts();
-      });
-      return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    items.forEach(product => {
-      const isFav = state.wishlist.includes(product.id);
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.setAttribute('tabindex', '0');
-
-      card.innerHTML = `
-        <div class="card-img-wrapper">
-          <img class="product-img" src="${product.image}" alt="${product.name}" loading="lazy">
-          ${product.badge ? `<span class="card-badge">${product.badge}</span>` : ''}
-          <button class="card-wishlist-btn ${isFav ? 'active' : ''}" data-id="${product.id}" title="${isFav ? 'Remove from Wishlist' : 'Add to Wishlist'}" aria-label="Wishlist">
-            <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-          </button>
-        </div>
-        <div class="card-body">
-          <div class="card-brand">${product.brand}</div>
-          <h3 class="card-title">${product.name}</h3>
-          
-          <div class="card-rating">
-            <span class="stars"><i class="fa-solid fa-star"></i> ${product.rating.toFixed(1)}</span>
-            <span class="reviews-text">(${product.reviewsCount} reviews)</span>
-          </div>
-
-          <div class="card-price-row">
-            <span class="current-price">${formatPrice(product.price)}</span>
-            ${product.originalPrice ? `<span class="original-price">${formatPrice(product.originalPrice)}</span>` : ''}
-            ${product.discount ? `<span class="discount-tag">${product.discount}</span>` : ''}
-          </div>
-
-          <button class="add-to-cart-btn" data-id="${product.id}">
-            <i class="fa-solid fa-cart-plus"></i> Add to Cart
-          </button>
-        </div>
-      `;
-
-      const favBtn = card.querySelector('.card-wishlist-btn');
-      favBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleWishlist(product.id);
-      });
-
-      const addBtn = card.querySelector('.add-to-cart-btn');
-      addBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        addToCart(product.id);
-      });
-
-      card.addEventListener('click', () => {
-        openQuickView(product);
-      });
-
-      fragment.appendChild(card);
+  document.querySelectorAll('.showcase-dots .s-dot').forEach((dot) => {
+    dot.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.dataset.index, 10);
+      updateHeroShowcase(idx);
     });
-
-    DOM.productsGrid.innerHTML = '';
-    DOM.productsGrid.appendChild(fragment);
-  }
-
-  function saveCart() {
-    localStorage.setItem('techsphere_cart', JSON.stringify(state.cart));
-    updateCartUI();
-  }
-
-  function addToCart(productId, qty) {
-    qty = qty || 1;
-    const product = state.products.find(p => p.id === productId);
-    if (!product) return;
-
-    const existingIndex = state.cart.findIndex(item => item.id === productId);
-    if (existingIndex > -1) {
-      state.cart[existingIndex].quantity += qty;
-    } else {
-      state.cart.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        brand: product.brand,
-        quantity: qty
-      });
-    }
-
-    saveCart();
-    animateCartBadge();
-    showToast('Added ' + product.name + ' to cart! 🛒', 'fa-cart-plus');
-  }
-
-  function updateCartQty(productId, delta) {
-    const item = state.cart.find(i => i.id === productId);
-    if (!item) return;
-
-    item.quantity += delta;
-    if (item.quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-
-    saveCart();
-  }
-
-  function removeFromCart(productId) {
-    const item = state.cart.find(i => i.id === productId);
-    state.cart = state.cart.filter(i => i.id !== productId);
-    saveCart();
-    if (item) {
-      showToast('Removed ' + item.name + ' from cart', 'fa-trash');
-    }
-  }
-
-  function calculateCartTotals() {
-    const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    let discount = 0;
-
-    if (state.appliedCoupon && subtotal > 0) {
-      discount = Math.round((subtotal * state.appliedCoupon.percent) / 100);
-    }
-
-    const grandTotal = Math.max(0, subtotal - discount);
-
-    return { subtotal, discount, grandTotal };
-  }
-
-  function updateCartUI() {
-    const totalCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
-    DOM.cartBadge.textContent = totalCount;
-    DOM.cartDrawerCount.textContent = totalCount;
-
-    const totals = calculateCartTotals();
-    const subtotal = totals.subtotal;
-    const discount = totals.discount;
-    const grandTotal = totals.grandTotal;
-
-    DOM.cartSubtotal.textContent = formatPrice(subtotal);
-    DOM.cartGrandTotal.textContent = formatPrice(grandTotal);
-
-    if (state.appliedCoupon && discount > 0) {
-      DOM.discountRow.style.display = 'flex';
-      DOM.discountPercent.textContent = state.appliedCoupon.percent + '% OFF';
-      DOM.cartDiscount.textContent = '-' + formatPrice(discount);
-    } else {
-      DOM.discountRow.style.display = 'none';
-    }
-
-    if (!state.cart.length) {
-      DOM.cartItemsList.innerHTML = `
-        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
-          <i class="fa-solid fa-cart-shopping" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-          <h4 style="color: var(--text-primary); font-size: 1.15rem; margin-bottom: 0.35rem;">Your cart is empty</h4>
-          <p style="font-size: 0.85rem;">Explore our latest electronics & tech gadgets to get started!</p>
-        </div>
-      `;
-      DOM.openCheckoutBtn.disabled = true;
-      DOM.openCheckoutBtn.style.opacity = '0.5';
-      DOM.openCheckoutBtn.style.cursor = 'not-allowed';
-      return;
-    }
-
-    DOM.openCheckoutBtn.disabled = false;
-    DOM.openCheckoutBtn.style.opacity = '1';
-    DOM.openCheckoutBtn.style.cursor = 'pointer';
-
-    DOM.cartItemsList.innerHTML = state.cart.map(item => `
-      <div class="cart-item">
-        <img class="cart-item-img" src="${item.image}" alt="${item.name}">
-        <div class="cart-item-info">
-          <div class="cart-item-title">${item.name}</div>
-          <div class="cart-item-price">${formatPrice(item.price)}</div>
-          <div class="cart-qty-controls">
-            <button class="qty-btn" onclick="TechApp.updateCartQty('${item.id}', -1)">-</button>
-            <span class="qty-count">${item.quantity}</span>
-            <button class="qty-btn" onclick="TechApp.updateCartQty('${item.id}', 1)">+</button>
-          </div>
-        </div>
-        <button class="cart-item-remove-btn" onclick="TechApp.removeFromCart('${item.id}')" title="Remove Item">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
-      </div>
-    `).join('');
-  }
-
-  function animateCartBadge() {
-    DOM.cartBadge.classList.add('bump');
-    setTimeout(() => DOM.cartBadge.classList.remove('bump'), 300);
-  }
-
-  function openCart() {
-    DOM.cartOverlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeCart() {
-    DOM.cartOverlay.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  DOM.openCartBtn.addEventListener('click', openCart);
-  DOM.closeCartBtn.addEventListener('click', closeCart);
-  DOM.cartOverlay.addEventListener('click', (e) => {
-    if (e.target === DOM.cartOverlay) closeCart();
   });
 
-  DOM.applyCouponBtn.addEventListener('click', () => {
-    const code = (DOM.couponInput.value || '').toUpperCase().trim();
-    if (!code) return;
+  // Auto rotate every 6 seconds
+  setInterval(() => {
+    const nextIdx = (AppState.heroIndex + 1) % HERO_ITEMS.length;
+    updateHeroShowcase(nextIdx);
+  }, 6500);
+}
 
-    if (VALID_COUPONS[code]) {
-      state.appliedCoupon = { code: code, percent: VALID_COUPONS[code] };
-      DOM.couponStatus.style.display = 'block';
-      DOM.couponStatus.style.color = '#10b981';
-      DOM.couponStatus.textContent = 'Coupon "' + code + '" applied! ' + VALID_COUPONS[code] + '% discount added.';
-      saveCart();
-      showToast('Coupon applied! ' + VALID_COUPONS[code] + '% OFF 🎉', 'fa-tag');
-    } else {
-      DOM.couponStatus.style.display = 'block';
-      DOM.couponStatus.style.color = '#ef4444';
-      DOM.couponStatus.textContent = 'Invalid coupon code. Try "TECH10" or "WELCOME20"';
+// ================= Product Catalog Rendering =================
+function filterAndSortProducts() {
+  return AppState.products.filter(p => {
+    // Category filter
+    const matchesCategory = AppState.currentCategory === 'all' || p.category === AppState.currentCategory;
+
+    // Search query filter
+    const q = AppState.searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || 
+      p.name.toLowerCase().includes(q) || 
+      p.brand.toLowerCase().includes(q) || 
+      p.categoryLabel.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q);
+
+    // Price filter
+    const matchesPrice = p.price <= AppState.maxPrice;
+
+    return matchesCategory && matchesSearch && matchesPrice;
+  }).sort((a, b) => {
+    if (AppState.sortBy === 'price-asc') return a.price - b.price;
+    if (AppState.sortBy === 'price-desc') return b.price - a.price;
+    if (AppState.sortBy === 'rating') return b.rating - a.rating;
+    if (AppState.sortBy === 'discount') {
+      const discA = parseInt(a.discount) || 0;
+      const discB = parseInt(b.discount) || 0;
+      return discB - discA;
     }
+    return 0; // 'featured' keeps original ordering
   });
+}
 
-  function openCheckout() {
-    if (!state.cart.length) return;
-    closeCart();
+function renderProducts() {
+  const grid = document.getElementById('productsGrid');
+  const emptyState = document.getElementById('emptyState');
+  const displayedCount = document.getElementById('displayedProductsCount');
+  const totalCount = document.getElementById('totalProductsCount');
 
-    const totals = calculateCartTotals();
-    DOM.checkoutPayableTotal.textContent = formatPrice(totals.grandTotal);
+  if (!grid) return;
 
-    DOM.checkoutOrderItemsList.innerHTML = state.cart.map(i => `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-        <span>${i.name} (x${i.quantity})</span>
-        <strong>${formatPrice(i.price * i.quantity)}</strong>
-      </div>
-    `).join('');
+  const filtered = filterAndSortProducts();
 
-    DOM.checkoutModal.classList.add('open');
-    document.body.style.overflow = 'hidden';
+  if (displayedCount) displayedCount.textContent = filtered.length;
+  if (totalCount) totalCount.textContent = AppState.products.length;
+
+  if (filtered.length === 0) {
+    grid.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'block';
+    return;
   }
 
-  function closeCheckout() {
-    DOM.checkoutModal.classList.remove('open');
-    document.body.style.overflow = '';
-  }
+  grid.style.display = 'grid';
+  if (emptyState) emptyState.style.display = 'none';
 
-  DOM.openCheckoutBtn.addEventListener('click', openCheckout);
-  DOM.closeCheckoutBtn.addEventListener('click', closeCheckout);
-  DOM.checkoutModal.addEventListener('click', (e) => {
-    if (e.target === DOM.checkoutModal) closeCheckout();
-  });
+  grid.innerHTML = filtered.map(product => {
+    const isWishlisted = AppState.wishlist.includes(product.id);
+    const specsArray = Object.values(product.specs || {}).slice(0, 3);
 
-  DOM.codCheckoutForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const name = DOM.custName.value.trim();
-    const phone = DOM.custPhone.value.trim();
-    const city = DOM.custCity.value;
-    const address = DOM.custAddress.value.trim();
-
-    if (!name || !phone || !city || !address) {
-      alert('Please fill out all required fields.');
-      return;
-    }
-
-    DOM.confirmOrderBtn.disabled = true;
-    DOM.confirmOrderBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Placing Cash on Delivery Order...';
-
-    setTimeout(() => {
-      const orderId = '#TS-' + Math.floor(10000 + Math.random() * 90000);
-      const totals = calculateCartTotals();
-
-      DOM.successOrderId.textContent = orderId;
-      DOM.successCustomerName.textContent = name;
-      DOM.successCustomerPhone.textContent = phone;
-      DOM.successCustomerAddress.textContent = address + ', ' + city;
-      DOM.successPayableAmount.textContent = formatPrice(totals.grandTotal) + ' (Cash on Delivery)';
-
-      state.cart = [];
-      state.appliedCoupon = null;
-      saveCart();
-
-      DOM.codCheckoutForm.reset();
-      DOM.confirmOrderBtn.disabled = false;
-      DOM.confirmOrderBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Confirm Cash on Delivery Order</span>';
-
-      closeCheckout();
-      DOM.orderSuccessModal.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      triggerConfetti();
-    }, 900);
-  });
-
-  DOM.continueShoppingBtn.addEventListener('click', () => {
-    DOM.orderSuccessModal.classList.remove('open');
-    document.body.style.overflow = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  function openQuickView(product) {
-    if (!product) return;
-
-    let specsHtml = '';
-    if (product.specs) {
-      specsHtml = Object.entries(product.specs).map(([key, val]) => `
-        <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.85rem;">
-          <span style="color: var(--text-muted); text-transform: capitalize;">${key}:</span>
-          <strong style="color: var(--text-primary);">${val}</strong>
-        </div>
-      `).join('');
-    }
-
-    DOM.quickViewContent.innerHTML = `
-      <div>
-        <img src="${product.image}" alt="${product.name}" style="width: 100%; border-radius: var(--radius-md); box-shadow: var(--shadow-md); max-height: 380px; object-fit: cover;">
-        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
-          <div style="flex: 1; text-align: center; padding: 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.8rem;">
-            <i class="fa-solid fa-truck-fast" style="color: var(--cyan-primary);"></i> Free Delivery
-          </div>
-          <div style="flex: 1; text-align: center; padding: 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.8rem;">
-            <i class="fa-solid fa-money-bill-wave" style="color: #10b981;"></i> Pay on Arrival
-          </div>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-        <div style="color: var(--cyan-primary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">${product.brand}</div>
-        <h2 style="font-size: 1.4rem; font-weight: 800; line-height: 1.25;">${product.name}</h2>
+    return `
+      <div class="product-card" data-id="${product.id}">
         
-        <div style="display: flex; align-items: baseline; gap: 0.75rem;">
-          <span style="font-size: 1.7rem; font-weight: 800; color: var(--cyan-primary);">${formatPrice(product.price)}</span>
-          ${product.originalPrice ? `<span style="font-size: 1.05rem; text-decoration: line-through; color: var(--text-muted);">${formatPrice(product.originalPrice)}</span>` : ''}
-          ${product.discount ? `<span style="color: #10b981; font-weight: 700; font-size: 0.85rem;">${product.discount}</span>` : ''}
-        </div>
+        <!-- Media & Badges -->
+        <div class="card-media">
+          <div class="card-badges">
+            <span class="badge-tag brand-chip">${product.brand}</span>
+            <span class="badge-tag bestseller">${product.badge || 'Flagship'}</span>
+            ${product.discount ? `<span class="badge-tag discount">${product.discount}</span>` : ''}
+          </div>
 
-        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">${product.description}</p>
+          <!-- Wishlist Toggle -->
+          <button class="wishlist-heart-btn ${isWishlisted ? 'active' : ''}" 
+                  onclick="toggleWishlist('${product.id}')" 
+                  aria-label="Save to Wishlist" 
+                  title="Save to Wishlist">
+            <i class="fa-${isWishlisted ? 'solid' : 'regular'} fa-heart"></i>
+          </button>
 
-        <div style="margin: 0.5rem 0;">
-          <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-primary);">Key Specifications:</div>
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem;">
-            ${specsHtml}
+          <!-- Product Image -->
+          <img src="${product.image}" 
+               alt="${product.name}" 
+               class="product-img" 
+               loading="lazy"
+               onerror="this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80'">
+
+          <!-- Hover Quick Action Overlay -->
+          <div class="card-hover-actions">
+            <button class="quick-action-btn" onclick="openQuickView('${product.id}')">
+              <i class="fa-solid fa-eye"></i> Quick View
+            </button>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-          <button class="checkout-btn" style="flex: 1;" onclick="TechApp.addToCart('${product.id}'); TechApp.closeQuickView();">
-            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+        <!-- Card Body -->
+        <div class="card-body">
+          
+          <div class="card-rating-row">
+            <div class="stars-wrap">
+              <i class="fa-solid fa-star"></i>
+              <span class="stars-score">${product.rating}</span>
+              <span class="reviews-count">(${product.reviewsCount})</span>
+            </div>
+            <div class="stock-indicator ${product.stock <= 5 ? 'low' : ''}">
+              <span class="stock-dot"></span>
+              <span>${product.stock <= 5 ? `Only ${product.stock} Left` : 'In Stock (COD)'}</span>
+            </div>
+          </div>
+
+          <h3 class="product-title" title="${product.name}">${product.name}</h3>
+
+          <!-- Specs Chips -->
+          <div class="card-specs-row">
+            ${specsArray.map(spec => `<span class="card-spec-chip">${spec}</span>`).join('')}
+          </div>
+
+          <!-- Price Section -->
+          <div class="card-price-section">
+            <div class="price-main">
+              <span class="price-pkr">${formatPKR(product.price)}</span>
+              ${product.originalPrice ? `<span class="price-original">${formatPKR(product.originalPrice)}</span>` : ''}
+            </div>
+            <span class="cod-perk-pill">
+              <i class="fa-solid fa-truck-fast"></i> Free COD
+            </span>
+          </div>
+
+          <!-- Add to Cart Button -->
+          <button class="card-add-cart-btn" id="addBtn_${product.id}" onclick="handleAddToCartClick('${product.id}')">
+            <i class="fa-solid fa-cart-plus"></i>
+            <span>Add to Cart (COD)</span>
           </button>
-          <button class="action-btn" onclick="TechApp.toggleWishlist('${product.id}')" title="Wishlist">
-            <i class="fa-regular fa-heart"></i>
-          </button>
+
         </div>
+
       </div>
     `;
+  }).join('');
+}
 
-    DOM.quickViewModal.classList.add('open');
-    document.body.style.overflow = 'hidden';
+// ================= Wishlist Logic =================
+function toggleWishlist(productId) {
+  const index = AppState.wishlist.indexOf(productId);
+  const product = AppState.products.find(p => p.id === productId);
+
+  if (index > -1) {
+    AppState.wishlist.splice(index, 1);
+    showToast(`Removed ${product ? product.name : 'item'} from wishlist`, 'info');
+  } else {
+    AppState.wishlist.push(productId);
+    showToast(`Added ${product ? product.name : 'item'} to wishlist! ❤️`, 'success');
   }
 
-  function closeQuickView() {
-    DOM.quickViewModal.classList.remove('open');
-    document.body.style.overflow = '';
+  saveWishlistToStorage();
+  updateCounters();
+  renderProducts();
+}
+
+// ================= Cart Drawer Logic =================
+function addToCart(productId, qty = 1) {
+  const product = AppState.products.find(p => p.id === productId);
+  if (!product) return;
+
+  const existing = AppState.cart.find(item => item.id === productId);
+  if (existing) {
+    existing.quantity += qty;
+  } else {
+    AppState.cart.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      brand: product.brand,
+      quantity: qty
+    });
   }
 
-  DOM.closeQuickViewBtn.addEventListener('click', closeQuickView);
-  DOM.quickViewModal.addEventListener('click', (e) => {
-    if (e.target === DOM.quickViewModal) closeQuickView();
-  });
+  saveCartToStorage();
+  updateCounters();
+  renderCartDrawer();
+}
 
-  function saveWishlist() {
-    localStorage.setItem('techsphere_wishlist', JSON.stringify(state.wishlist));
-    DOM.wishlistBadge.textContent = state.wishlist.length;
-    DOM.wishlistModalCount.textContent = state.wishlist.length;
+function handleAddToCartClick(productId) {
+  addToCart(productId, 1);
+  const btn = document.getElementById(`addBtn_${productId}`);
+  const product = AppState.products.find(p => p.id === productId);
+
+  if (btn) {
+    btn.classList.add('added');
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Added ✓</span>';
+    setTimeout(() => {
+      btn.classList.remove('added');
+      btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> <span>Add to Cart (COD)</span>';
+    }, 1800);
   }
 
-  function toggleWishlist(productId) {
-    const product = state.products.find(p => p.id === productId);
-    if (!product) return;
+  showToast(`Added ${product ? product.name : 'item'} to your cart!`, 'success');
+}
 
-    if (state.wishlist.includes(productId)) {
-      state.wishlist = state.wishlist.filter(id => id !== productId);
-      showToast('Removed from Wishlist', 'fa-heart-crack');
-    } else {
-      state.wishlist.push(productId);
-      showToast('Saved ' + product.name + ' to Wishlist ❤️', 'fa-heart');
-    }
+function updateCartItemQty(productId, change) {
+  const item = AppState.cart.find(i => i.id === productId);
+  if (!item) return;
 
-    saveWishlist();
-    renderProducts();
-    renderWishlistModal();
+  item.quantity += change;
+  if (item.quantity <= 0) {
+    AppState.cart = AppState.cart.filter(i => i.id !== productId);
+    showToast('Item removed from cart', 'info');
   }
 
-  function renderWishlistModal() {
-    const items = state.products.filter(p => state.wishlist.includes(p.id));
-    if (!items.length) {
-      DOM.wishlistItemsList.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No items saved in wishlist yet.</p>';
-      return;
-    }
+  saveCartToStorage();
+  updateCounters();
+  renderCartDrawer();
+}
 
-    DOM.wishlistItemsList.innerHTML = items.map(p => `
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-        <img src="${p.image}" alt="${p.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--radius-sm);">
-        <div style="flex: 1; min-width: 0;">
-          <div style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</div>
-          <div style="font-size: 0.85rem; color: var(--cyan-primary); font-weight: 700;">${formatPrice(p.price)}</div>
-        </div>
-        <button class="action-btn" onclick="TechApp.addToCart('${p.id}'); TechApp.toggleWishlist('${p.id}');" style="padding: 0.4rem 0.8rem; font-size: 0.78rem;">
-          <i class="fa-solid fa-cart-plus"></i> Move to Cart
+function removeCartItem(productId) {
+  AppState.cart = AppState.cart.filter(i => i.id !== productId);
+  saveCartToStorage();
+  updateCounters();
+  renderCartDrawer();
+  showToast('Item removed from cart', 'info');
+}
+
+function renderCartDrawer() {
+  const list = document.getElementById('cartItemsList');
+  const subtotalEl = document.getElementById('cartSubtotal');
+  const discountRow = document.getElementById('cartDiscountRow');
+  const discountEl = document.getElementById('cartDiscount');
+  const totalEl = document.getElementById('cartTotal');
+  const drawerCount = document.getElementById('cartDrawerCount');
+
+  if (!list) return;
+
+  const totalItems = AppState.cart.reduce((sum, i) => sum + i.quantity, 0);
+  if (drawerCount) drawerCount.textContent = `${totalItems} items`;
+
+  if (AppState.cart.length === 0) {
+    list.innerHTML = `
+      <div class="cart-empty-view">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <h4>Your Cart is Empty</h4>
+        <p class="text-muted">Explore our flagship electronics and add products via Cash on Delivery!</p>
+        <button class="btn btn-primary btn-sm" onclick="closeCart(); document.getElementById('catalogSection').scrollIntoView({behavior:'smooth'});" style="margin-top: 1rem;">
+          Browse Electronics
         </button>
       </div>
-    `).join('');
+    `;
+    if (subtotalEl) subtotalEl.textContent = formatPKR(0);
+    if (discountRow) discountRow.style.display = 'none';
+    if (totalEl) totalEl.textContent = formatPKR(0);
+    return;
   }
 
-  DOM.openWishlistBtn.addEventListener('click', () => {
-    renderWishlistModal();
-    DOM.wishlistModal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  });
+  list.innerHTML = AppState.cart.map(item => `
+    <div class="cart-item">
+      <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+      <div class="cart-item-info">
+        <h4>${item.name}</h4>
+        <span class="cart-item-price">${formatPKR(item.price)}</span>
+        <div class="cart-qty-controls">
+          <button class="qty-btn" onclick="updateCartItemQty('${item.id}', -1)" aria-label="Decrease quantity">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <span class="qty-value">${item.quantity}</span>
+          <button class="qty-btn" onclick="updateCartItemQty('${item.id}', 1)" aria-label="Increase quantity">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </div>
+      <button class="cart-item-remove-btn" onclick="removeCartItem('${item.id}')" aria-label="Remove item" title="Remove">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    </div>
+  `).join('');
 
-  DOM.closeWishlistBtn.addEventListener('click', () => {
-    DOM.wishlistModal.classList.remove('open');
-    document.body.style.overflow = '';
-  });
+  // Calculations
+  const subtotal = AppState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  let discountAmount = 0;
 
-  function triggerConfetti() {
-    const canvas = document.createElement('canvas');
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.width = '100vw';
-    canvas.style.height = '100vh';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '2500';
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles = [];
-    const colors = ['#06b6d4', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
-
-    for (let i = 0; i < 90; i++) {
-      particles.push({
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        vx: (Math.random() - 0.5) * 16,
-        vy: (Math.random() - 0.5) * 16 - 3,
-        size: Math.random() * 8 + 4,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        rotation: Math.random() * 360,
-        rSpeed: (Math.random() - 0.5) * 10,
-        life: 1
-      });
-    }
-
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      let alive = false;
-
-      particles.forEach(p => {
-        if (p.life > 0) {
-          alive = true;
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.35;
-          p.rotation += p.rSpeed;
-          p.life -= 0.015;
-
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate((p.rotation * Math.PI) / 180);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = p.life;
-          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-          ctx.restore();
-        }
-      });
-
-      if (alive) {
-        requestAnimationFrame(animate);
-      } else {
-        if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
-      }
-    }
-
-    animate();
+  if (AppState.activeCoupon) {
+    discountAmount = Math.round((subtotal * AppState.activeCoupon.discountPercent) / 100);
   }
 
-  DOM.categoryChips.addEventListener('click', (e) => {
-    const chip = e.target.closest('.category-chip');
-    if (!chip) return;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
-    DOM.categoryChips.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
+  if (subtotalEl) subtotalEl.textContent = formatPKR(subtotal);
 
-    state.activeCategory = chip.dataset.category;
-    renderProducts();
+  if (discountRow) {
+    if (discountAmount > 0) {
+      discountRow.style.display = 'flex';
+      discountEl.textContent = `-${formatPKR(discountAmount)}`;
+    } else {
+      discountRow.style.display = 'none';
+    }
+  }
+
+  if (totalEl) totalEl.textContent = formatPKR(finalTotal);
+}
+
+function updateCounters() {
+  const cartTotalItems = AppState.cart.reduce((sum, i) => sum + i.quantity, 0);
+  const cartBadge = document.getElementById('cartCount');
+  if (cartBadge) cartBadge.textContent = cartTotalItems;
+
+  const wishBadge = document.getElementById('wishlistCount');
+  if (wishBadge) wishBadge.textContent = AppState.wishlist.length;
+}
+
+// Drawer Open / Close
+function openCart() {
+  const drawer = document.getElementById('cartDrawer');
+  const backdrop = document.getElementById('cartBackdrop');
+  if (drawer) drawer.classList.add('open');
+  if (backdrop) backdrop.classList.add('open');
+  renderCartDrawer();
+}
+
+function closeCart() {
+  const drawer = document.getElementById('cartDrawer');
+  const backdrop = document.getElementById('cartBackdrop');
+  if (drawer) drawer.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+}
+
+// Coupon Handling
+function applyCouponCode(code) {
+  const cleanCode = code.toUpperCase().trim();
+  const feedback = document.getElementById('couponFeedback');
+  const couponData = PROMO_COUPONS[cleanCode];
+
+  if (!couponData) {
+    if (feedback) {
+      feedback.className = 'coupon-feedback error';
+      feedback.textContent = 'Invalid promo coupon. Try TECH10 or COD5.';
+    }
+    return;
+  }
+
+  const subtotal = AppState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  if (subtotal < couponData.minOrder) {
+    if (feedback) {
+      feedback.className = 'coupon-feedback error';
+      feedback.textContent = `Coupon requires minimum order of ${formatPKR(couponData.minOrder)}`;
+    }
+    return;
+  }
+
+  AppState.activeCoupon = couponData;
+  if (feedback) {
+    feedback.className = 'coupon-feedback success';
+    feedback.textContent = `✓ '${cleanCode}' applied: ${couponData.discountPercent}% Discount!`;
+  }
+
+  renderCartDrawer();
+  showToast(`Promo coupon ${cleanCode} activated! 🎉`, 'success');
+}
+
+// ================= Quick View Modal =================
+function openQuickView(productId) {
+  const product = AppState.products.find(p => p.id === productId);
+  if (!product) return;
+
+  const content = document.getElementById('quickViewContent');
+  const modal = document.getElementById('quickViewModal');
+
+  if (!content || !modal) return;
+
+  const specsRows = Object.entries(product.specs || {}).map(([key, val]) => `
+    <tr>
+      <td>${key.charAt(0).toUpperCase() + key.slice(1)}</td>
+      <td>${val}</td>
+    </tr>
+  `).join('');
+
+  content.innerHTML = `
+    <div class="quickview-grid">
+      <div class="quickview-image-wrap">
+        <img src="${product.image}" alt="${product.name}">
+      </div>
+      <div>
+        <div class="hero-chip" style="margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-microchip"></i> ${product.brand} • ${product.categoryLabel}
+        </div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${product.name}</h2>
+        
+        <div class="card-rating-row" style="margin-bottom: 1rem;">
+          <div class="stars-wrap">
+            <i class="fa-solid fa-star"></i>
+            <span class="stars-score">${product.rating}</span>
+            <span class="reviews-count">(${product.reviewsCount} verified reviews)</span>
+          </div>
+          <span class="stock-indicator">● In Stock (Free Cash on Delivery)</span>
+        </div>
+
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.6;">
+          ${product.description}
+        </p>
+
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Key Specifications:</h4>
+        <table class="quickview-specs-table">
+          <tbody>${specsRows}</tbody>
+        </table>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+          <div>
+            <div style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--color-cyan);">
+              ${formatPKR(product.price)}
+            </div>
+            ${product.originalPrice ? `<span style="color: var(--text-muted); text-decoration: line-through; font-size: 0.85rem;">${formatPKR(product.originalPrice)}</span>` : ''}
+          </div>
+          <button class="btn btn-primary" onclick="addToCart('${product.id}', 1); closeQuickView(); showToast('Added to Cart!', 'success');">
+            <i class="fa-solid fa-cart-plus"></i> Add to Cart (COD)
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closeQuickView() {
+  const modal = document.getElementById('quickViewModal');
+  if (modal) modal.classList.remove('open');
+}
+
+// ================= Cash on Delivery Checkout Flow =================
+function openCheckoutModal() {
+  if (AppState.cart.length === 0) {
+    showToast('Your cart is empty! Add gadgets before checking out.', 'info');
+    return;
+  }
+
+  closeCart();
+  const modal = document.getElementById('checkoutModal');
+  const formStep = document.getElementById('checkoutFormStep');
+  const successStep = document.getElementById('checkoutSuccessStep');
+  const itemsCount = document.getElementById('modalOrderItemsCount');
+  const totalAmount = document.getElementById('modalOrderTotal');
+
+  if (formStep) formStep.style.display = 'block';
+  if (successStep) successStep.style.display = 'none';
+
+  const totalItems = AppState.cart.reduce((sum, i) => sum + i.quantity, 0);
+  const subtotal = AppState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  let discount = 0;
+  if (AppState.activeCoupon) {
+    discount = Math.round((subtotal * AppState.activeCoupon.discountPercent) / 100);
+  }
+  const finalPayable = Math.max(0, subtotal - discount);
+
+  if (itemsCount) itemsCount.textContent = totalItems;
+  if (totalAmount) totalAmount.textContent = formatPKR(finalPayable);
+
+  if (modal) modal.classList.add('open');
+}
+
+function closeCheckoutModal() {
+  const modal = document.getElementById('checkoutModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function handleCODOrderSubmit(e) {
+  e.preventDefault();
+
+  const nameInput = document.getElementById('orderFullName');
+  const phoneInput = document.getElementById('orderPhone');
+  const cityInput = document.getElementById('orderCity');
+  const addressInput = document.getElementById('orderAddress');
+
+  const fullName = nameInput ? nameInput.value.trim() : 'Valued Customer';
+  const city = cityInput ? cityInput.value : 'Pakistan';
+
+  // Calculate final order details
+  const subtotal = AppState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  let discount = 0;
+  if (AppState.activeCoupon) {
+    discount = Math.round((subtotal * AppState.activeCoupon.discountPercent) / 100);
+  }
+  const finalTotal = Math.max(0, subtotal - discount);
+  const randomId = '#TS-' + Math.floor(10000 + Math.random() * 90000);
+
+  // Populate receipt
+  const receiptId = document.getElementById('receiptOrderId');
+  const receiptName = document.getElementById('receiptCustomerName');
+  const receiptCity = document.getElementById('receiptCity');
+  const receiptTotal = document.getElementById('receiptTotalAmount');
+
+  if (receiptId) receiptId.textContent = randomId;
+  if (receiptName) receiptName.textContent = fullName;
+  if (receiptCity) receiptCity.textContent = city + ', Pakistan';
+  if (receiptTotal) receiptTotal.textContent = formatPKR(finalTotal);
+
+  // Trigger celebration confetti
+  if (typeof confetti === 'function') {
+    confetti({
+      particleCount: 120,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  }
+
+  // Switch to success step
+  const formStep = document.getElementById('checkoutFormStep');
+  const successStep = document.getElementById('checkoutSuccessStep');
+  if (formStep) formStep.style.display = 'none';
+  if (successStep) successStep.style.display = 'block';
+
+  // Clear cart
+  AppState.cart = [];
+  AppState.activeCoupon = null;
+  saveCartToStorage();
+  updateCounters();
+  renderCartDrawer();
+
+  showToast('Order confirmed via Cash on Delivery! 📦', 'success');
+}
+
+// ================= Theme Switcher =================
+function initTheme() {
+  const savedTheme = localStorage.getItem('techsphere_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+
+  const toggleBtn = document.getElementById('themeToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('techsphere_theme', next);
+      updateThemeIcon(next);
+    });
+  }
+}
+
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+}
+
+// ================= Event Listeners Initialization =================
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Theme
+  initTheme();
+
+  // 2. Countdown & Hero rotation
+  initFlashCountdown();
+  initHeroRotation();
+
+  // 3. Render Initial State
+  updateCounters();
+  renderProducts();
+
+  // 4. Cart triggers
+  const openCartBtn = document.getElementById('openCartBtn');
+  const closeCartBtn = document.getElementById('closeCartBtn');
+  const cartBackdrop = document.getElementById('cartBackdrop');
+  if (openCartBtn) openCartBtn.addEventListener('click', openCart);
+  if (closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+  if (cartBackdrop) cartBackdrop.addEventListener('click', closeCart);
+
+  // 5. Checkout triggers
+  const proceedBtn = document.getElementById('proceedToCheckoutBtn');
+  const closeCheckoutBtn = document.getElementById('closeCheckoutBtn');
+  const cancelCheckoutBtn = document.getElementById('cancelCheckoutBtn');
+  const codForm = document.getElementById('codOrderForm');
+  const continueShoppingBtn = document.getElementById('continueShoppingBtn');
+  const printReceiptBtn = document.getElementById('printReceiptBtn');
+
+  if (proceedBtn) proceedBtn.addEventListener('click', openCheckoutModal);
+  if (closeCheckoutBtn) closeCheckoutBtn.addEventListener('click', closeCheckoutModal);
+  if (cancelCheckoutBtn) cancelCheckoutBtn.addEventListener('click', () => {
+    closeCheckoutModal();
+    openCart();
   });
+  if (codForm) codForm.addEventListener('submit', handleCODOrderSubmit);
+  if (continueShoppingBtn) continueShoppingBtn.addEventListener('click', closeCheckoutModal);
+  if (printReceiptBtn) printReceiptBtn.addEventListener('click', () => window.print());
 
-  DOM.sortSelect.addEventListener('change', (e) => {
-    state.sortBy = e.target.value;
-    renderProducts();
-  });
+  // 6. Quick View modal close
+  const closeQuickViewBtn = document.getElementById('closeQuickViewBtn');
+  const quickViewModal = document.getElementById('quickViewModal');
+  if (closeQuickViewBtn) closeQuickViewBtn.addEventListener('click', closeQuickView);
+  if (quickViewModal) {
+    quickViewModal.addEventListener('click', (e) => {
+      if (e.target === quickViewModal) closeQuickView();
+    });
+  }
 
-  let searchTimeout;
-  DOM.navSearchInput.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    const val = e.target.value;
-    DOM.navSearchClear.style.display = val.trim() ? 'flex' : 'none';
-    searchTimeout = setTimeout(() => {
-      state.searchQuery = val;
+  // 7. Category Filter Tabs
+  document.querySelectorAll('.cat-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      AppState.currentCategory = pill.dataset.category || 'all';
       renderProducts();
-    }, 200);
+    });
   });
 
-  DOM.navSearchClear.addEventListener('click', () => {
-    DOM.navSearchInput.value = '';
-    DOM.navSearchClear.style.display = 'none';
-    state.searchQuery = '';
-    DOM.navSearchInput.focus();
-    renderProducts();
+  // 8. Footer Category Links
+  document.querySelectorAll('.footer-links a[data-cat]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const cat = link.dataset.cat;
+      const targetPill = document.querySelector(`.cat-pill[data-category="${cat}"]`);
+      if (targetPill) targetPill.click();
+    });
   });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeCart();
-      closeCheckout();
-      closeQuickView();
-      DOM.wishlistModal.classList.remove('open');
-      DOM.orderSuccessModal.classList.remove('open');
-      document.body.style.overflow = '';
-    }
-  });
+  // 9. Search Inputs (Synchronized)
+  const globalSearch = document.getElementById('globalSearchInput');
+  const catalogSearch = document.getElementById('catalogSearchInput');
+  const searchClear = document.getElementById('searchClearBtn');
 
-  DOM.brandHomeBtn.addEventListener('click', () => {
-    state.activeCategory = 'all';
-    state.searchQuery = '';
-    DOM.navSearchInput.value = '';
-    DOM.navSearchClear.style.display = 'none';
-    DOM.categoryChips.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c.dataset.category === 'all'));
-    renderProducts();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  function init() {
-    applyTheme(state.theme);
-    saveWishlist();
-    updateCartUI();
+  function handleSearchInput(value) {
+    AppState.searchQuery = value;
+    if (globalSearch && globalSearch.value !== value) globalSearch.value = value;
+    if (catalogSearch && catalogSearch.value !== value) catalogSearch.value = value;
+    if (searchClear) searchClear.style.display = value ? 'block' : 'none';
     renderProducts();
   }
 
-  init();
+  if (globalSearch) {
+    globalSearch.addEventListener('input', (e) => handleSearchInput(e.target.value));
+  }
+  if (catalogSearch) {
+    catalogSearch.addEventListener('input', (e) => handleSearchInput(e.target.value));
+  }
+  if (searchClear) {
+    searchClear.addEventListener('click', () => handleSearchInput(''));
+  }
 
-  window.TechApp = {
-    addToCart,
-    updateCartQty,
-    removeFromCart,
-    toggleWishlist,
-    closeQuickView
-  };
+  // 10. Price Slider
+  const priceSlider = document.getElementById('priceRangeSlider');
+  const priceDisplay = document.getElementById('priceDisplay');
+  if (priceSlider) {
+    priceSlider.addEventListener('input', (e) => {
+      AppState.maxPrice = parseInt(e.target.value, 10);
+      if (priceDisplay) priceDisplay.textContent = formatPKR(AppState.maxPrice);
+      renderProducts();
+    });
+  }
 
-})();
+  // 11. Sort Dropdown
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      AppState.sortBy = e.target.value;
+      renderProducts();
+    });
+  }
+
+  // 12. Promo Coupon Buttons & Chips
+  const applyCouponBtn = document.getElementById('applyCouponBtn');
+  const couponInput = document.getElementById('couponInput');
+  if (applyCouponBtn && couponInput) {
+    applyCouponBtn.addEventListener('click', () => applyCouponCode(couponInput.value));
+  }
+  document.querySelectorAll('.coupon-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const code = chip.dataset.code;
+      if (couponInput) couponInput.value = code;
+      applyCouponCode(code);
+    });
+  });
+
+  // 13. FAQ Accordion
+  document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.parentElement;
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!isActive) item.classList.add('active');
+    });
+  });
+
+  // 14. How COD Works Hero Button
+  const howCodBtn = document.getElementById('howCodWorksBtn');
+  if (howCodBtn) {
+    howCodBtn.addEventListener('click', () => {
+      const sec = document.getElementById('howCodSection');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // 15. Reset Filters
+  const resetBtn = document.getElementById('resetFiltersEmptyBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      AppState.searchQuery = '';
+      AppState.currentCategory = 'all';
+      AppState.maxPrice = 1050000;
+      if (globalSearch) globalSearch.value = '';
+      if (catalogSearch) catalogSearch.value = '';
+      if (priceSlider) priceSlider.value = 1050000;
+      if (priceDisplay) priceDisplay.textContent = formatPKR(1050000);
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      const allPill = document.querySelector('.cat-pill[data-category="all"]');
+      if (allPill) allPill.classList.add('active');
+      renderProducts();
+    });
+  }
+});
